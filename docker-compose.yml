@@ -1,0 +1,39 @@
+version: '3'
+services:
+  nginx:
+   depends_on:
+      - "php"
+   image: "nginx"
+   volumes:
+        - "$PWD/file/conf/nginx/nginx.conf:/etc/nginx/nginx.conf"
+        - "../costco-buy/:/usr/share/nginx/html"
+   ports:
+        - "8788:80"
+   networks:
+        - costco-buy-network
+   container_name: "costco-buy-nginx"
+   command: /bin/bash -c "mkdir -p /var/www && ln -s /usr/share/nginx/html /var/www && nginx -g 'daemon off;'"
+
+  php:
+       image: "costco-php-fpm"
+
+       build:
+         context: .
+         dockerfile: "file/Dockerfile"
+       networks:
+        - costco-buy-network
+       container_name: "costco-buy-php-fpm"
+       ports:
+        - "9000:9000"
+       volumes:
+          - "../costco-buy/:/usr/share/nginx/html"
+       environment:
+          - PMA_HOST=mysql
+          - PMA_PORT=3308
+          - MYSQL_USERNAME=root
+          - MYSQL_ROOT_PASSWORD=123456
+
+
+networks:
+  costco-buy-network:
+   driver: bridge
